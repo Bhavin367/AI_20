@@ -10,4 +10,8 @@ def limit_cost(genome):
 # genome[true false false] - high[tre false false ] 
 # gives [12] - [2] , picks only stuff that gave true and returns the difference 
 
+#
+# need 
+# - sym_cost 
+
 
