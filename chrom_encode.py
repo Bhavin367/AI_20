@@ -46,16 +46,9 @@ def from_frames(gait):
     return np.asarray(gait).flatten()
 
 
-def save_population(population, filename="population.txt"):
-    np.savetxt(filename, population, fmt="%.4f")       # one chromosome per line, 4 decimals
-
-
-def load_population(filename="population.txt"):
-    return np.loadtxt(filename)
-
-
 if __name__ == "__main__":
-    pop = generate_population()
-    save_population(pop)
-    print(f"Saved {pop.shape[0]} chromosomes of {pop.shape[1]} genes "
-          f"({N_FRAMES} frames x {GENES_PER_FRAME}) to population.txt")
+    print(to_frames(a))
+    pop = generate_population() 
+    print(f"Saved {pop.shape[0]} chromosomes of {pop.shape[1]} genes ")
+
+

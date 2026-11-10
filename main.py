@@ -1,6 +1,7 @@
 import numpy as np
 import chrom_encode as ce
 import fitness as fit
+import ga_op as ga  
 
 np.set_printoptions(suppress=True, precision=2)
 
@@ -36,3 +37,8 @@ show_walk(ge)
 
 stand = np.tile([0, -40, -40], ce.N_FRAMES * 8).astype(float)
 show_costs("standing still", stand)
+
+best, best_hist, mean_hist = ga.evolve(seed=0)
+
+show_costs("GA best", best)
+show_walk(best)
