@@ -7,7 +7,6 @@ Assumptions (adjust if your chrom_encode differs):
   - ce.LOWER / ce.UPPER are 96-long arrays of joint caps
   - the fitness file is called fitness.py (change the import below if not)
 """
-from importlib.machinery import WindowsRegistryFinder
 
 import numpy as np
 import config
@@ -96,3 +95,120 @@ def blx_crossover(p1, p2, alpha=0.3, pc=0.9):
         c2 = rng.uniform(lo - margin, hi + margin)
 
     return c1, c2
+
+
+# ---------------------------------------------------------------------------
+# Mutation A (default): per-gene Gaussian, scaled to each gene's range
+# ---------------------------------------------------------------------------
+# Each gene mutates independently with probability pm. A mutated gene gets
+# noise ~ N(0, sigma_frac * SPAN), so the step size is a fraction of that
+# gene's allowed range (a joint with a wide cap takes bigger steps than a
+# narrow one). Small nudges fine-tune an already-good leg pose, which suits
+# real-coded angles. Results are clipped so we never leave the joint caps.
+# pm = 0.05 -> about 5 of 96 genes change per child on average.
+def gaussian_mutation(genome, pm=0.05, sigma_frac=0.1):
+    child = genome.copy()
+
+    mask = rng.random(N_GENES) < pm                 # which genes mutate
+    noise = rng.normal(0.0, sigma_frac * SPAN)      # one noise value per gene
+    child[mask] += noise[mask]                      # only apply to masked genes
+
+    return np.clip(child, ce.LOWER, ce.UPPER)
+
+
+# ---------------------------------------------------------------------------
+# Mutation B: block reset, re-randomises a whole (frame, leg) triple
+# ---------------------------------------------------------------------------
+# Gaussian noise only makes local moves. This makes a big jump on one leg
+# pose at a time. It keeps coxa/femur/tibia together (same reasoning as the
+# block crossover) and helps escape local optima / restore lost diversity.
+# Keep pm_block low, since it is disruptive.
+def block_reset_mutation(genome, pm_block=0.03):
+    child = genome.copy()
+
+    for i in range(N_BLOCKS):
+        if rng.random() < pm_block:
+            start = i * JOINTS
+            end = start + JOINTS
+            child[start:end] = rng.uniform(ce.LOWER[start:end], ce.UPPER[start:end])
+
+    return child
+
+
+# ---------------------------------------------------------------------------
+# Adaptive step size: sigma shrinks linearly over the run
+# ---------------------------------------------------------------------------
+# Early on we want big steps to explore; late on we want small ones to
+# fine-tune. Pass the result in as sigma_frac.
+def sigma_schedule(gen, max_gen, start=0.15, end=0.02):
+    t = gen / max(1, max_gen - 1)
+    return start + t * (end - start)
+
+
+# ---------------------------------------------------------------------------
+# Wrapper used by the GA loop
+# ---------------------------------------------------------------------------
+def mutate(genome, pm=0.05, sigma_frac=0.1, pm_block=0.03):
+    genome = gaussian_mutation(genome, pm, sigma_frac)
+    genome = block_reset_mutation(genome, pm_block)
+    return genome 
+
+
+# ---------------------------------------------------------------------------
+# The GA loop
+# ---------------------------------------------------------------------------
+# Returns (best_genome, best_hist, mean_hist) because main.py expects that.
+# Every parameter is an argument so it can be tuned/compared in the report.
+def evolve(pop_size=config.population_size,
+           generations=config.generations,
+           pc=0.9,                 # crossover probability
+           pm=0.05,                # per-gene mutation probability
+           pm_block=0.03,          # per-block reset probability
+           k=3,                    # tournament size
+           elite=2,                # best genomes copied unchanged
+           crossover=block_uniform_crossover,
+           adaptive=True,          # shrink sigma over the run
+           sigma_fixed=0.1,        # used when adaptive=False
+           target=0.999,           # stop early if fitness reaches this
+           seed=None,
+           verbose=True):
+    global rng
+    if seed is not None:
+        rng = np.random.default_rng(seed)   # reproducible runs
+
+    # 1. initialise + evaluate
+    pop = np.array([random_genome() for _ in range(pop_size)])
+    fits = np.array([fit.fitness(g) for g in pop])
+    best_hist, mean_hist = [], []
+
+    for gen in range(generations):
+        # 2. elitism: keep the best `elite` genomes untouched
+        order = np.argsort(fits)[::-1]
+        new_pop = [pop[i].copy() for i in order[:elite]]
+
+        sigma = sigma_schedule(gen, generations) if adaptive else sigma_fixed
+
+        # 3. breed until the population is full
+        while len(new_pop) < pop_size:
+            p1 = tournament_select(pop, fits, k)
+            p2 = tournament_select(pop, fits, k)
+            c1, c2 = crossover(p1, p2, pc=pc)
+            new_pop.append(mutate(c1, pm, sigma, pm_block))
+            if len(new_pop) < pop_size:
+                new_pop.append(mutate(c2, pm, sigma, pm_block))
+
+        # 4. evaluate the new generation
+        pop = np.array(new_pop)
+        fits = np.array([fit.fitness(g) for g in pop])
+
+        # 5. record stats for the plots
+        best_hist.append(fits.max())
+        mean_hist.append(fits.mean())
+        if verbose and gen % 20 == 0:
+            print(f"gen {gen:3d}  best {fits.max():.6f}  mean {fits.mean():.6f}")
+
+        # 6. termination: good enough
+        if fits.max() >= target:
+            break
+
+    return pop[np.argmax(fits)].copy(), best_hist, mean_hist
