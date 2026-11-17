@@ -1,0 +1,1357 @@
+#VRML_SIM R2025a utf8
+# license: Apache License 2.0
+# license url: http://www.apache.org/licenses/LICENSE-2.0
+# This is a proto file for Webots for the SpiderOctopod
+# Extracted from: C:\Users\admin\Downloads\robots\spider_robot.urdf
+
+PROTO SpiderOctopod [
+  field  SFVec3f     translation     0 0 0
+  field  SFRotation  rotation        0 0 1 0
+  field  SFString    name            "SpiderOctopod"  # Is `Robot.name`.
+  field  SFString    controller      "void"           # Is `Robot.controller`.
+  field  MFString    controllerArgs  []               # Is `Robot.controllerArgs`.
+  field  SFString    customData      ""               # Is `Robot.customData`.
+  field  SFBool      supervisor      FALSE            # Is `Robot.supervisor`.
+  field  SFBool      synchronization TRUE             # Is `Robot.synchronization`.
+  field  SFBool      selfCollision   FALSE            # Is `Robot.selfCollision`.
+]
+{
+  Robot {
+    translation IS translation
+    rotation IS rotation
+    controller IS controller
+    controllerArgs IS controllerArgs
+    customData IS customData
+    supervisor IS supervisor
+    synchronization IS synchronization
+    selfCollision IS selfCollision
+    children [
+	  GPS { 
+	      name "gps"
+	  }
+      Shape {
+        appearance DEF dark_grey PBRAppearance {
+          baseColor 0.500000 0.500000 0.500000
+          roughness 1.000000
+          metalness 0
+        }
+        geometry Box {
+           size 1.300000 0.400000 0.300000
+        }
+      }
+      HingeJoint {
+        jointParameters HingeJointParameters {
+          axis 0.000000 0.707108 0.707105
+          anchor 0.487500 -0.200000 0.000000
+        }
+        device [
+          RotationalMotor {
+            name "R1_hip_joint"
+            maxVelocity 2.0
+            minPosition -1.5708
+            maxPosition 1.5708
+            maxTorque 50.0
+          }
+          PositionSensor {
+            name "R1_hip_joint_sensor"
+          }
+        ]
+        endPoint Solid {
+          translation 0.487500 -0.200000 0.000000
+          rotation -1.000000 0.000000 0.000000 0.785400
+          children [
+            Pose {
+              translation 0.000000 -0.250000 0.000000
+              rotation 1.000000 0.000000 0.000000 1.570800
+              children [
+                Shape {
+                  appearance DEF blue PBRAppearance {
+                    baseColor 0.500000 0.500000 0.500000
+                    roughness 1.000000
+                    metalness 0
+                  }
+                  geometry Cylinder {
+                    radius 0.03
+                    height 0.5
+                  }
+                }
+              ]
+            }
+            HingeJoint {
+              jointParameters HingeJointParameters {
+                anchor 0.000000 -0.500000 0.000000
+              }
+              device [
+                RotationalMotor {
+                  name "R1_thigh_joint"
+                  maxVelocity 2.0
+                  minPosition -1.5708
+                  maxPosition 1.5708
+                  maxTorque 50.0
+                }
+                PositionSensor {
+                  name "R1_thigh_joint_sensor"
+                }
+              ]
+              endPoint Solid {
+                translation 0.000000 -0.500000 0.000000
+                children [
+                  Pose {
+                    translation 0.000000 -0.300000 0.000000
+                    children [
+                      Shape {
+                        appearance DEF red PBRAppearance {
+                          baseColor 0.500000 0.500000 0.500000
+                          roughness 1.000000
+                          metalness 0
+                        }
+                        geometry Box {
+                           size 0.040000 0.600000 0.040000
+                        }
+                      }
+                    ]
+                  }
+                  HingeJoint {
+                    jointParameters HingeJointParameters {
+                      anchor 0.000000 -0.600000 0.000000
+                    }
+                    device [
+                      RotationalMotor {
+                        name "R1_knee_joint"
+                        maxVelocity 2.0
+                        minPosition -2.0
+                        maxPosition 1.0
+                        maxTorque 50.0
+                      }
+                      PositionSensor {
+                        name "R1_knee_joint_sensor"
+                      }
+                    ]
+                    endPoint Solid {
+                      translation 0.000000 -0.600000 0.000000
+                      children [
+                        Pose {
+                          translation 0.000000 0.000000 -0.350000
+                          children [
+                            Shape {
+                              appearance DEF black PBRAppearance {
+                                baseColor 0.500000 0.500000 0.500000
+                                roughness 1.000000
+                                metalness 0
+                              }
+                              geometry Cylinder {
+                                radius 0.02
+                                height 0.7
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                      name "R1_tibia"
+                      boundingObject Pose {
+                        translation 0.000000 0.000000 -0.350000
+                        children [
+                          Cylinder {
+                            radius 0.02
+                            height 0.7
+                          }
+                        ]
+                      }
+                      physics Physics {
+                        density -1
+                        mass 0.900000
+                        centerOfMass [ 0.000000 0.000000 -0.350000 ]
+                        inertiaMatrix [
+                          3.680000e-02 3.680000e-02 1.800000e-04
+                          0.000000e+00 0.000000e+00 0.000000e+00
+                        ]
+                      }
+                    }
+                  }
+                ]
+                name "R1_thigh"
+                boundingObject Pose {
+                  translation 0.000000 -0.300000 0.000000
+                  children [
+                    Box {
+                       size 0.040000 0.600000 0.040000
+                    }
+                  ]
+                }
+                physics Physics {
+                  density -1
+                  mass 1.400000
+                  centerOfMass [ 0.000000 -0.300000 0.000000 ]
+                  inertiaMatrix [
+                    4.200000e-02 3.700000e-04 4.200000e-02
+                    0.000000e+00 0.000000e+00 0.000000e+00
+                  ]
+                }
+              }
+            }
+          ]
+          name "R1_coxa"
+          boundingObject Pose {
+            translation 0.000000 -0.250000 0.000000
+            rotation 1.000000 0.000000 0.000000 1.570800
+            children [
+              Cylinder {
+                radius 0.03
+                height 0.5
+              }
+            ]
+          }
+          physics Physics {
+            density -1
+            mass 1.200000
+            centerOfMass [ 0.000000 -0.250000 0.000000 ]
+            inertiaMatrix [
+              2.500000e-02 5.400000e-04 2.500000e-02
+              0.000000e+00 0.000000e+00 0.000000e+00
+            ]
+          }
+        }
+      }
+      HingeJoint {
+        jointParameters HingeJointParameters {
+          axis 0.000000 0.707108 0.707105
+          anchor 0.162500 -0.200000 0.000000
+        }
+        device [
+          RotationalMotor {
+            name "R2_hip_joint"
+            maxVelocity 2.0
+            minPosition -1.5708
+            maxPosition 1.5708
+            maxTorque 50.0
+          }
+          PositionSensor {
+            name "R2_hip_joint_sensor"
+          }
+        ]
+        endPoint Solid {
+          translation 0.162500 -0.200000 0.000000
+          rotation -1.000000 0.000000 0.000000 0.785400
+          children [
+            Pose {
+              translation 0.000000 -0.250000 0.000000
+              rotation 1.000000 0.000000 0.000000 1.570800
+              children [
+                Shape {
+                  appearance USE blue
+                  geometry Cylinder {
+                    radius 0.03
+                    height 0.5
+                  }
+                }
+              ]
+            }
+            HingeJoint {
+              jointParameters HingeJointParameters {
+                anchor 0.000000 -0.500000 0.000000
+              }
+              device [
+                RotationalMotor {
+                  name "R2_thigh_joint"
+                  maxVelocity 2.0
+                  minPosition -1.5708
+                  maxPosition 1.5708
+                  maxTorque 50.0
+                }
+                PositionSensor {
+                  name "R2_thigh_joint_sensor"
+                }
+              ]
+              endPoint Solid {
+                translation 0.000000 -0.500000 0.000000
+                children [
+                  Pose {
+                    translation 0.000000 -0.300000 0.000000
+                    children [
+                      Shape {
+                        appearance USE red
+                        geometry Box {
+                           size 0.040000 0.600000 0.040000
+                        }
+                      }
+                    ]
+                  }
+                  HingeJoint {
+                    jointParameters HingeJointParameters {
+                      anchor 0.000000 -0.600000 0.000000
+                    }
+                    device [
+                      RotationalMotor {
+                        name "R2_knee_joint"
+                        maxVelocity 2.0
+                        minPosition -2.0
+                        maxPosition 1.0
+                        maxTorque 50.0
+                      }
+                      PositionSensor {
+                        name "R2_knee_joint_sensor"
+                      }
+                    ]
+                    endPoint Solid {
+                      translation 0.000000 -0.600000 0.000000
+                      children [
+                        Pose {
+                          translation 0.000000 0.000000 -0.350000
+                          children [
+                            Shape {
+                              appearance USE black
+                              geometry Cylinder {
+                                radius 0.02
+                                height 0.7
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                      name "R2_tibia"
+                      boundingObject Pose {
+                        translation 0.000000 0.000000 -0.350000
+                        children [
+                          Cylinder {
+                            radius 0.02
+                            height 0.7
+                          }
+                        ]
+                      }
+                      physics Physics {
+                        density -1
+                        mass 0.900000
+                        centerOfMass [ 0.000000 0.000000 -0.350000 ]
+                        inertiaMatrix [
+                          3.680000e-02 3.680000e-02 1.800000e-04
+                          0.000000e+00 0.000000e+00 0.000000e+00
+                        ]
+                      }
+                    }
+                  }
+                ]
+                name "R2_thigh"
+                boundingObject Pose {
+                  translation 0.000000 -0.300000 0.000000
+                  children [
+                    Box {
+                       size 0.040000 0.600000 0.040000
+                    }
+                  ]
+                }
+                physics Physics {
+                  density -1
+                  mass 1.400000
+                  centerOfMass [ 0.000000 -0.300000 0.000000 ]
+                  inertiaMatrix [
+                    4.200000e-02 3.700000e-04 4.200000e-02
+                    0.000000e+00 0.000000e+00 0.000000e+00
+                  ]
+                }
+              }
+            }
+          ]
+          name "R2_coxa"
+          boundingObject Pose {
+            translation 0.000000 -0.250000 0.000000
+            rotation 1.000000 0.000000 0.000000 1.570800
+            children [
+              Cylinder {
+                radius 0.03
+                height 0.5
+              }
+            ]
+          }
+          physics Physics {
+            density -1
+            mass 1.200000
+            centerOfMass [ 0.000000 -0.250000 0.000000 ]
+            inertiaMatrix [
+              2.500000e-02 5.400000e-04 2.500000e-02
+              0.000000e+00 0.000000e+00 0.000000e+00
+            ]
+          }
+        }
+      }
+      HingeJoint {
+        jointParameters HingeJointParameters {
+          axis 0.000000 0.707108 0.707105
+          anchor -0.162500 -0.200000 0.000000
+        }
+        device [
+          RotationalMotor {
+            name "R3_hip_joint"
+            maxVelocity 2.0
+            minPosition -1.5708
+            maxPosition 1.5708
+            maxTorque 50.0
+          }
+          PositionSensor {
+            name "R3_hip_joint_sensor"
+          }
+        ]
+        endPoint Solid {
+          translation -0.162500 -0.200000 0.000000
+          rotation -1.000000 0.000000 0.000000 0.785400
+          children [
+            Pose {
+              translation 0.000000 -0.250000 0.000000
+              rotation 1.000000 0.000000 0.000000 1.570800
+              children [
+                Shape {
+                  appearance USE blue
+                  geometry Cylinder {
+                    radius 0.03
+                    height 0.5
+                  }
+                }
+              ]
+            }
+            HingeJoint {
+              jointParameters HingeJointParameters {
+                anchor 0.000000 -0.500000 0.000000
+              }
+              device [
+                RotationalMotor {
+                  name "R3_thigh_joint"
+                  maxVelocity 2.0
+                  minPosition -1.5708
+                  maxPosition 1.5708
+                  maxTorque 50.0
+                }
+                PositionSensor {
+                  name "R3_thigh_joint_sensor"
+                }
+              ]
+              endPoint Solid {
+                translation 0.000000 -0.500000 0.000000
+                children [
+                  Pose {
+                    translation 0.000000 -0.300000 0.000000
+                    children [
+                      Shape {
+                        appearance USE red
+                        geometry Box {
+                           size 0.040000 0.600000 0.040000
+                        }
+                      }
+                    ]
+                  }
+                  HingeJoint {
+                    jointParameters HingeJointParameters {
+                      anchor 0.000000 -0.600000 0.000000
+                    }
+                    device [
+                      RotationalMotor {
+                        name "R3_knee_joint"
+                        maxVelocity 2.0
+                        minPosition -2.0
+                        maxPosition 1.0
+                        maxTorque 50.0
+                      }
+                      PositionSensor {
+                        name "R3_knee_joint_sensor"
+                      }
+                    ]
+                    endPoint Solid {
+                      translation 0.000000 -0.600000 0.000000
+                      children [
+                        Pose {
+                          translation 0.000000 0.000000 -0.350000
+                          children [
+                            Shape {
+                              appearance USE black
+                              geometry Cylinder {
+                                radius 0.02
+                                height 0.7
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                      name "R3_tibia"
+                      boundingObject Pose {
+                        translation 0.000000 0.000000 -0.350000
+                        children [
+                          Cylinder {
+                            radius 0.02
+                            height 0.7
+                          }
+                        ]
+                      }
+                      physics Physics {
+                        density -1
+                        mass 0.900000
+                        centerOfMass [ 0.000000 0.000000 -0.350000 ]
+                        inertiaMatrix [
+                          3.680000e-02 3.680000e-02 1.800000e-04
+                          0.000000e+00 0.000000e+00 0.000000e+00
+                        ]
+                      }
+                    }
+                  }
+                ]
+                name "R3_thigh"
+                boundingObject Pose {
+                  translation 0.000000 -0.300000 0.000000
+                  children [
+                    Box {
+                       size 0.040000 0.600000 0.040000
+                    }
+                  ]
+                }
+                physics Physics {
+                  density -1
+                  mass 1.400000
+                  centerOfMass [ 0.000000 -0.300000 0.000000 ]
+                  inertiaMatrix [
+                    4.200000e-02 3.700000e-04 4.200000e-02
+                    0.000000e+00 0.000000e+00 0.000000e+00
+                  ]
+                }
+              }
+            }
+          ]
+          name "R3_coxa"
+          boundingObject Pose {
+            translation 0.000000 -0.250000 0.000000
+            rotation 1.000000 0.000000 0.000000 1.570800
+            children [
+              Cylinder {
+                radius 0.03
+                height 0.5
+              }
+            ]
+          }
+          physics Physics {
+            density -1
+            mass 1.200000
+            centerOfMass [ 0.000000 -0.250000 0.000000 ]
+            inertiaMatrix [
+              2.500000e-02 5.400000e-04 2.500000e-02
+              0.000000e+00 0.000000e+00 0.000000e+00
+            ]
+          }
+        }
+      }
+      HingeJoint {
+        jointParameters HingeJointParameters {
+          axis 0.000000 0.707108 0.707105
+          anchor -0.487500 -0.200000 0.000000
+        }
+        device [
+          RotationalMotor {
+            name "R4_hip_joint"
+            maxVelocity 2.0
+            minPosition -1.5708
+            maxPosition 1.5708
+            maxTorque 50.0
+          }
+          PositionSensor {
+            name "R4_hip_joint_sensor"
+          }
+        ]
+        endPoint Solid {
+          translation -0.487500 -0.200000 0.000000
+          rotation -1.000000 0.000000 0.000000 0.785400
+          children [
+            Pose {
+              translation 0.000000 -0.250000 0.000000
+              rotation 1.000000 0.000000 0.000000 1.570800
+              children [
+                Shape {
+                  appearance USE blue
+                  geometry Cylinder {
+                    radius 0.03
+                    height 0.5
+                  }
+                }
+              ]
+            }
+            HingeJoint {
+              jointParameters HingeJointParameters {
+                anchor 0.000000 -0.500000 0.000000
+              }
+              device [
+                RotationalMotor {
+                  name "R4_thigh_joint"
+                  maxVelocity 2.0
+                  minPosition -1.5708
+                  maxPosition 1.5708
+                  maxTorque 50.0
+                }
+                PositionSensor {
+                  name "R4_thigh_joint_sensor"
+                }
+              ]
+              endPoint Solid {
+                translation 0.000000 -0.500000 0.000000
+                children [
+                  Pose {
+                    translation 0.000000 -0.300000 0.000000
+                    children [
+                      Shape {
+                        appearance USE red
+                        geometry Box {
+                           size 0.040000 0.600000 0.040000
+                        }
+                      }
+                    ]
+                  }
+                  HingeJoint {
+                    jointParameters HingeJointParameters {
+                      anchor 0.000000 -0.600000 0.000000
+                    }
+                    device [
+                      RotationalMotor {
+                        name "R4_knee_joint"
+                        maxVelocity 2.0
+                        minPosition -2.0
+                        maxPosition 1.0
+                        maxTorque 50.0
+                      }
+                      PositionSensor {
+                        name "R4_knee_joint_sensor"
+                      }
+                    ]
+                    endPoint Solid {
+                      translation 0.000000 -0.600000 0.000000
+                      children [
+                        Pose {
+                          translation 0.000000 0.000000 -0.350000
+                          children [
+                            Shape {
+                              appearance USE black
+                              geometry Cylinder {
+                                radius 0.02
+                                height 0.7
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                      name "R4_tibia"
+                      boundingObject Pose {
+                        translation 0.000000 0.000000 -0.350000
+                        children [
+                          Cylinder {
+                            radius 0.02
+                            height 0.7
+                          }
+                        ]
+                      }
+                      physics Physics {
+                        density -1
+                        mass 0.900000
+                        centerOfMass [ 0.000000 0.000000 -0.350000 ]
+                        inertiaMatrix [
+                          3.680000e-02 3.680000e-02 1.800000e-04
+                          0.000000e+00 0.000000e+00 0.000000e+00
+                        ]
+                      }
+                    }
+                  }
+                ]
+                name "R4_thigh"
+                boundingObject Pose {
+                  translation 0.000000 -0.300000 0.000000
+                  children [
+                    Box {
+                       size 0.040000 0.600000 0.040000
+                    }
+                  ]
+                }
+                physics Physics {
+                  density -1
+                  mass 1.400000
+                  centerOfMass [ 0.000000 -0.300000 0.000000 ]
+                  inertiaMatrix [
+                    4.200000e-02 3.700000e-04 4.200000e-02
+                    0.000000e+00 0.000000e+00 0.000000e+00
+                  ]
+                }
+              }
+            }
+          ]
+          name "R4_coxa"
+          boundingObject Pose {
+            translation 0.000000 -0.250000 0.000000
+            rotation 1.000000 0.000000 0.000000 1.570800
+            children [
+              Cylinder {
+                radius 0.03
+                height 0.5
+              }
+            ]
+          }
+          physics Physics {
+            density -1
+            mass 1.200000
+            centerOfMass [ 0.000000 -0.250000 0.000000 ]
+            inertiaMatrix [
+              2.500000e-02 5.400000e-04 2.500000e-02
+              0.000000e+00 0.000000e+00 0.000000e+00
+            ]
+          }
+        }
+      }
+      HingeJoint {
+        jointParameters HingeJointParameters {
+          axis 0.000000 -0.707108 0.707105
+          anchor 0.487500 0.200000 0.000000
+        }
+        device [
+          RotationalMotor {
+            name "L1_hip_joint"
+            maxVelocity 2.0
+            minPosition -1.5708
+            maxPosition 1.5708
+            maxTorque 50.0
+          }
+          PositionSensor {
+            name "L1_hip_joint_sensor"
+          }
+        ]
+        endPoint Solid {
+          translation 0.487500 0.200000 0.000000
+          rotation 1.000000 0.000000 0.000000 0.785400
+          children [
+            Pose {
+              translation 0.000000 0.250000 0.000000
+              rotation 1.000000 0.000000 0.000000 1.570800
+              children [
+                Shape {
+                  appearance USE blue
+                  geometry Cylinder {
+                    radius 0.03
+                    height 0.5
+                  }
+                }
+              ]
+            }
+            HingeJoint {
+              jointParameters HingeJointParameters {
+                anchor 0.000000 0.500000 0.000000
+              }
+              device [
+                RotationalMotor {
+                  name "L1_thigh_joint"
+                  maxVelocity 2.0
+                  minPosition -1.5708
+                  maxPosition 1.5708
+                  maxTorque 50.0
+                }
+                PositionSensor {
+                  name "L1_thigh_joint_sensor"
+                }
+              ]
+              endPoint Solid {
+                translation 0.000000 0.500000 0.000000
+                children [
+                  Pose {
+                    translation 0.000000 0.300000 0.000000
+                    children [
+                      Shape {
+                        appearance USE red
+                        geometry Box {
+                           size 0.040000 0.600000 0.040000
+                        }
+                      }
+                    ]
+                  }
+                  HingeJoint {
+                    jointParameters HingeJointParameters {
+                      anchor 0.000000 0.600000 0.000000
+                    }
+                    device [
+                      RotationalMotor {
+                        name "L1_knee_joint"
+                        maxVelocity 2.0
+                        minPosition -2.0
+                        maxPosition 1.0
+                        maxTorque 50.0
+                      }
+                      PositionSensor {
+                        name "L1_knee_joint_sensor"
+                      }
+                    ]
+                    endPoint Solid {
+                      translation 0.000000 0.600000 0.000000
+                      children [
+                        Pose {
+                          translation 0.000000 0.000000 -0.350000
+                          children [
+                            Shape {
+                              appearance USE black
+                              geometry Cylinder {
+                                radius 0.02
+                                height 0.7
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                      name "L1_tibia"
+                      boundingObject Pose {
+                        translation 0.000000 0.000000 -0.350000
+                        children [
+                          Cylinder {
+                            radius 0.02
+                            height 0.7
+                          }
+                        ]
+                      }
+                      physics Physics {
+                        density -1
+                        mass 0.900000
+                        centerOfMass [ 0.000000 0.000000 -0.350000 ]
+                        inertiaMatrix [
+                          3.680000e-02 3.680000e-02 1.800000e-04
+                          0.000000e+00 0.000000e+00 0.000000e+00
+                        ]
+                      }
+                    }
+                  }
+                ]
+                name "L1_thigh"
+                boundingObject Pose {
+                  translation 0.000000 0.300000 0.000000
+                  children [
+                    Box {
+                       size 0.040000 0.600000 0.040000
+                    }
+                  ]
+                }
+                physics Physics {
+                  density -1
+                  mass 1.400000
+                  centerOfMass [ 0.000000 0.300000 0.000000 ]
+                  inertiaMatrix [
+                    4.200000e-02 3.700000e-04 4.200000e-02
+                    0.000000e+00 0.000000e+00 0.000000e+00
+                  ]
+                }
+              }
+            }
+          ]
+          name "L1_coxa"
+          boundingObject Pose {
+            translation 0.000000 0.250000 0.000000
+            rotation 1.000000 0.000000 0.000000 1.570800
+            children [
+              Cylinder {
+                radius 0.03
+                height 0.5
+              }
+            ]
+          }
+          physics Physics {
+            density -1
+            mass 1.200000
+            centerOfMass [ 0.000000 0.250000 0.000000 ]
+            inertiaMatrix [
+              2.500000e-02 5.400000e-04 2.500000e-02
+              0.000000e+00 0.000000e+00 0.000000e+00
+            ]
+          }
+        }
+      }
+      HingeJoint {
+        jointParameters HingeJointParameters {
+          axis 0.000000 -0.707108 0.707105
+          anchor 0.162500 0.200000 0.000000
+        }
+        device [
+          RotationalMotor {
+            name "L2_hip_joint"
+            maxVelocity 2.0
+            minPosition -1.5708
+            maxPosition 1.5708
+            maxTorque 50.0
+          }
+          PositionSensor {
+            name "L2_hip_joint_sensor"
+          }
+        ]
+        endPoint Solid {
+          translation 0.162500 0.200000 0.000000
+          rotation 1.000000 0.000000 0.000000 0.785400
+          children [
+            Pose {
+              translation 0.000000 0.250000 0.000000
+              rotation 1.000000 0.000000 0.000000 1.570800
+              children [
+                Shape {
+                  appearance USE blue
+                  geometry Cylinder {
+                    radius 0.03
+                    height 0.5
+                  }
+                }
+              ]
+            }
+            HingeJoint {
+              jointParameters HingeJointParameters {
+                anchor 0.000000 0.500000 0.000000
+              }
+              device [
+                RotationalMotor {
+                  name "L2_thigh_joint"
+                  maxVelocity 2.0
+                  minPosition -1.5708
+                  maxPosition 1.5708
+                  maxTorque 50.0
+                }
+                PositionSensor {
+                  name "L2_thigh_joint_sensor"
+                }
+              ]
+              endPoint Solid {
+                translation 0.000000 0.500000 0.000000
+                children [
+                  Pose {
+                    translation 0.000000 0.300000 0.000000
+                    children [
+                      Shape {
+                        appearance USE red
+                        geometry Box {
+                           size 0.040000 0.600000 0.040000
+                        }
+                      }
+                    ]
+                  }
+                  HingeJoint {
+                    jointParameters HingeJointParameters {
+                      anchor 0.000000 0.600000 0.000000
+                    }
+                    device [
+                      RotationalMotor {
+                        name "L2_knee_joint"
+                        maxVelocity 2.0
+                        minPosition -2.0
+                        maxPosition 1.0
+                        maxTorque 50.0
+                      }
+                      PositionSensor {
+                        name "L2_knee_joint_sensor"
+                      }
+                    ]
+                    endPoint Solid {
+                      translation 0.000000 0.600000 0.000000
+                      children [
+                        Pose {
+                          translation 0.000000 0.000000 -0.350000
+                          children [
+                            Shape {
+                              appearance USE black
+                              geometry Cylinder {
+                                radius 0.02
+                                height 0.7
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                      name "L2_tibia"
+                      boundingObject Pose {
+                        translation 0.000000 0.000000 -0.350000
+                        children [
+                          Cylinder {
+                            radius 0.02
+                            height 0.7
+                          }
+                        ]
+                      }
+                      physics Physics {
+                        density -1
+                        mass 0.900000
+                        centerOfMass [ 0.000000 0.000000 -0.350000 ]
+                        inertiaMatrix [
+                          3.680000e-02 3.680000e-02 1.800000e-04
+                          0.000000e+00 0.000000e+00 0.000000e+00
+                        ]
+                      }
+                    }
+                  }
+                ]
+                name "L2_thigh"
+                boundingObject Pose {
+                  translation 0.000000 0.300000 0.000000
+                  children [
+                    Box {
+                       size 0.040000 0.600000 0.040000
+                    }
+                  ]
+                }
+                physics Physics {
+                  density -1
+                  mass 1.400000
+                  centerOfMass [ 0.000000 0.300000 0.000000 ]
+                  inertiaMatrix [
+                    4.200000e-02 3.700000e-04 4.200000e-02
+                    0.000000e+00 0.000000e+00 0.000000e+00
+                  ]
+                }
+              }
+            }
+          ]
+          name "L2_coxa"
+          boundingObject Pose {
+            translation 0.000000 0.250000 0.000000
+            rotation 1.000000 0.000000 0.000000 1.570800
+            children [
+              Cylinder {
+                radius 0.03
+                height 0.5
+              }
+            ]
+          }
+          physics Physics {
+            density -1
+            mass 1.200000
+            centerOfMass [ 0.000000 0.250000 0.000000 ]
+            inertiaMatrix [
+              2.500000e-02 5.400000e-04 2.500000e-02
+              0.000000e+00 0.000000e+00 0.000000e+00
+            ]
+          }
+        }
+      }
+      HingeJoint {
+        jointParameters HingeJointParameters {
+          axis 0.000000 -0.707108 0.707105
+          anchor -0.162500 0.200000 0.000000
+        }
+        device [
+          RotationalMotor {
+            name "L3_hip_joint"
+            maxVelocity 2.0
+            minPosition -1.5708
+            maxPosition 1.5708
+            maxTorque 50.0
+          }
+          PositionSensor {
+            name "L3_hip_joint_sensor"
+          }
+        ]
+        endPoint Solid {
+          translation -0.162500 0.200000 0.000000
+          rotation 1.000000 0.000000 0.000000 0.785400
+          children [
+            Pose {
+              translation 0.000000 0.250000 0.000000
+              rotation 1.000000 0.000000 0.000000 1.570800
+              children [
+                Shape {
+                  appearance USE blue
+                  geometry Cylinder {
+                    radius 0.03
+                    height 0.5
+                  }
+                }
+              ]
+            }
+            HingeJoint {
+              jointParameters HingeJointParameters {
+                anchor 0.000000 0.500000 0.000000
+              }
+              device [
+                RotationalMotor {
+                  name "L3_thigh_joint"
+                  maxVelocity 2.0
+                  minPosition -1.5708
+                  maxPosition 1.5708
+                  maxTorque 50.0
+                }
+                PositionSensor {
+                  name "L3_thigh_joint_sensor"
+                }
+              ]
+              endPoint Solid {
+                translation 0.000000 0.500000 0.000000
+                children [
+                  Pose {
+                    translation 0.000000 0.300000 0.000000
+                    children [
+                      Shape {
+                        appearance USE red
+                        geometry Box {
+                           size 0.040000 0.600000 0.040000
+                        }
+                      }
+                    ]
+                  }
+                  HingeJoint {
+                    jointParameters HingeJointParameters {
+                      anchor 0.000000 0.600000 0.000000
+                    }
+                    device [
+                      RotationalMotor {
+                        name "L3_knee_joint"
+                        maxVelocity 2.0
+                        minPosition -2.0
+                        maxPosition 1.0
+                        maxTorque 50.0
+                      }
+                      PositionSensor {
+                        name "L3_knee_joint_sensor"
+                      }
+                    ]
+                    endPoint Solid {
+                      translation 0.000000 0.600000 0.000000
+                      children [
+                        Pose {
+                          translation 0.000000 0.000000 -0.350000
+                          children [
+                            Shape {
+                              appearance USE black
+                              geometry Cylinder {
+                                radius 0.02
+                                height 0.7
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                      name "L3_tibia"
+                      boundingObject Pose {
+                        translation 0.000000 0.000000 -0.350000
+                        children [
+                          Cylinder {
+                            radius 0.02
+                            height 0.7
+                          }
+                        ]
+                      }
+                      physics Physics {
+                        density -1
+                        mass 0.900000
+                        centerOfMass [ 0.000000 0.000000 -0.350000 ]
+                        inertiaMatrix [
+                          3.680000e-02 3.680000e-02 1.800000e-04
+                          0.000000e+00 0.000000e+00 0.000000e+00
+                        ]
+                      }
+                    }
+                  }
+                ]
+                name "L3_thigh"
+                boundingObject Pose {
+                  translation 0.000000 0.300000 0.000000
+                  children [
+                    Box {
+                       size 0.040000 0.600000 0.040000
+                    }
+                  ]
+                }
+                physics Physics {
+                  density -1
+                  mass 1.400000
+                  centerOfMass [ 0.000000 0.300000 0.000000 ]
+                  inertiaMatrix [
+                    4.200000e-02 3.700000e-04 4.200000e-02
+                    0.000000e+00 0.000000e+00 0.000000e+00
+                  ]
+                }
+              }
+            }
+          ]
+          name "L3_coxa"
+          boundingObject Pose {
+            translation 0.000000 0.250000 0.000000
+            rotation 1.000000 0.000000 0.000000 1.570800
+            children [
+              Cylinder {
+                radius 0.03
+                height 0.5
+              }
+            ]
+          }
+          physics Physics {
+            density -1
+            mass 1.200000
+            centerOfMass [ 0.000000 0.250000 0.000000 ]
+            inertiaMatrix [
+              2.500000e-02 5.400000e-04 2.500000e-02
+              0.000000e+00 0.000000e+00 0.000000e+00
+            ]
+          }
+        }
+      }
+      HingeJoint {
+        jointParameters HingeJointParameters {
+          axis 0.000000 -0.707108 0.707105
+          anchor -0.487500 0.200000 0.000000
+        }
+        device [
+          RotationalMotor {
+            name "L4_hip_joint"
+            maxVelocity 2.0
+            minPosition -1.5708
+            maxPosition 1.5708
+            maxTorque 50.0
+          }
+          PositionSensor {
+            name "L4_hip_joint_sensor"
+          }
+        ]
+        endPoint Solid {
+          translation -0.487500 0.200000 0.000000
+          rotation 1.000000 0.000000 0.000000 0.785400
+          children [
+            Pose {
+              translation 0.000000 0.250000 0.000000
+              rotation 1.000000 0.000000 0.000000 1.570800
+              children [
+                Shape {
+                  appearance USE blue
+                  geometry Cylinder {
+                    radius 0.03
+                    height 0.5
+                  }
+                }
+              ]
+            }
+            HingeJoint {
+              jointParameters HingeJointParameters {
+                anchor 0.000000 0.500000 0.000000
+              }
+              device [
+                RotationalMotor {
+                  name "L4_thigh_joint"
+                  maxVelocity 2.0
+                  minPosition -1.5708
+                  maxPosition 1.5708
+                  maxTorque 50.0
+                }
+                PositionSensor {
+                  name "L4_thigh_joint_sensor"
+                }
+              ]
+              endPoint Solid {
+                translation 0.000000 0.500000 0.000000
+                children [
+                  Pose {
+                    translation 0.000000 0.300000 0.000000
+                    children [
+                      Shape {
+                        appearance USE red
+                        geometry Box {
+                           size 0.040000 0.600000 0.040000
+                        }
+                      }
+                    ]
+                  }
+                  HingeJoint {
+                    jointParameters HingeJointParameters {
+                      anchor 0.000000 0.600000 0.000000
+                    }
+                    device [
+                      RotationalMotor {
+                        name "L4_knee_joint"
+                        maxVelocity 2.0
+                        minPosition -2.0
+                        maxPosition 1.0
+                        maxTorque 50.0
+                      }
+                      PositionSensor {
+                        name "L4_knee_joint_sensor"
+                      }
+                    ]
+                    endPoint Solid {
+                      translation 0.000000 0.600000 0.000000
+                      children [
+                        Pose {
+                          translation 0.000000 0.000000 -0.350000
+                          children [
+                            Shape {
+                              appearance USE black
+                              geometry Cylinder {
+                                radius 0.02
+                                height 0.7
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                      name "L4_tibia"
+                      boundingObject Pose {
+                        translation 0.000000 0.000000 -0.350000
+                        children [
+                          Cylinder {
+                            radius 0.02
+                            height 0.7
+                          }
+                        ]
+                      }
+                      physics Physics {
+                        density -1
+                        mass 0.900000
+                        centerOfMass [ 0.000000 0.000000 -0.350000 ]
+                        inertiaMatrix [
+                          3.680000e-02 3.680000e-02 1.800000e-04
+                          0.000000e+00 0.000000e+00 0.000000e+00
+                        ]
+                      }
+                    }
+                  }
+                ]
+                name "L4_thigh"
+                boundingObject Pose {
+                  translation 0.000000 0.300000 0.000000
+                  children [
+                    Box {
+                       size 0.040000 0.600000 0.040000
+                    }
+                  ]
+                }
+                physics Physics {
+                  density -1
+                  mass 1.400000
+                  centerOfMass [ 0.000000 0.300000 0.000000 ]
+                  inertiaMatrix [
+                    4.200000e-02 3.700000e-04 4.200000e-02
+                    0.000000e+00 0.000000e+00 0.000000e+00
+                  ]
+                }
+              }
+            }
+          ]
+          name "L4_coxa"
+          boundingObject Pose {
+            translation 0.000000 0.250000 0.000000
+            rotation 1.000000 0.000000 0.000000 1.570800
+            children [
+              Cylinder {
+                radius 0.03
+                height 0.5
+              }
+            ]
+          }
+          physics Physics {
+            density -1
+            mass 1.200000
+            centerOfMass [ 0.000000 0.250000 0.000000 ]
+            inertiaMatrix [
+              2.500000e-02 5.400000e-04 2.500000e-02
+              0.000000e+00 0.000000e+00 0.000000e+00
+            ]
+          }
+        }
+      }
+    ]
+    name IS name
+    boundingObject Box {
+       size 1.300000 0.400000 0.300000
+    }
+    physics Physics {
+      density -1
+      mass 15.000000
+      centerOfMass [ 0.000000 0.000000 0.000000 ]
+      inertiaMatrix [
+        3.125000e-01 2.225000e+00 2.312500e+00
+        0.000000e+00 0.000000e+00 0.000000e+00
+      ]
+    }
+  }
+}
