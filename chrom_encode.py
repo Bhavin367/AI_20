@@ -47,8 +47,9 @@ def from_frames(gait):
 
 
 if __name__ == "__main__":
+    a = generate_genome()
     print(to_frames(a))
-    pop = generate_population() 
-    print(f"Saved {pop.shape[0]} chromosomes of {pop.shape[1]} genes ")
+    pop = generate_population()
+    print(f"Generated {pop.shape[0]} chromosomes of {pop.shape[1]} genes")
 
 
