@@ -10,10 +10,9 @@ t = np.arange(n_frames)
 phase = 2 * np.pi * t / n_frames
 X = np.column_stack([np.sin(phase), np.cos(phase)])   # inputs, shape (300, 2)
 
-# Placeholder gait until the GA team delivers the real one:
-# each of the 24 joints swings in a sine wave with its own offset.
-Y = np.column_stack([0.3 * np.sin(phase + j) for j in range(24)])  # targets, shape (300, 24)
-# Later this line becomes: Y = np.load("gait.npy")
+# Real gait from our GA (Part 1): 300 frames x 24 joint angles.
+# gait.csv is in degrees, so convert to radians.
+Y = np.radians(np.loadtxt("gait.csv", delimiter=","))
 
 print("X shape:", X.shape)
 print("Y shape:", Y.shape)
@@ -148,50 +147,83 @@ for epoch in range(epochs):
 
 print("Final loss:", loss_history[-1])
 
-# # ===== STEP 7: PLOTS =====
-# import matplotlib.pyplot as plt
+# ---- Save the network ----
+save_data = {}
+for i, (W, b) in enumerate(params):   # go through each layer
+    save_data[f"W{i}"] = W            # the weights
+    save_data[f"b{i}"] = b            # the biases
+np.savez("trained_model.npz", **save_data)   # put them all in one file
+print("Saved model to trained_model.npz")
 
-# # Predictions from the trained network
-# final_pred = forward(X, params)
+# ===== STEP 7: PLOTS =====
+import matplotlib.pyplot as plt
 
-# joint_labels = [f"{leg} {j}" for leg in ["L1", "L2", "L3", "L4", "R4", "R3", "R2", "R1"]
-#                 for j in ["coxa", "femur", "tibia"]]
+# Predictions from the trained network
+final_pred = forward(X, params)
 
-# # ---- Plot 1: loss curve ----
-# # Log scale on the y-axis, because the loss shrinks by several
-# # orders of magnitude and a normal scale would hide the later progress.
-# plt.figure(figsize=(7, 4))
-# plt.plot(loss_history)
-# plt.yscale("log")
-# plt.xlabel("Epoch")
-# plt.ylabel("MSE loss (log scale)")
-# plt.title(f"Training loss  (layers {layer_sizes}, lr = {learning_rate})")
-# plt.grid(True, alpha=0.3)
-# plt.tight_layout()
-# plt.savefig("loss_curve.png", dpi=150)
+joint_labels = [f"{leg} {j}" for leg in ["L1", "L2", "L3", "L4", "R4", "R3", "R2", "R1"]
+                for j in ["coxa", "femur", "tibia"]]
 
-# # ---- Plot 2: predicted vs target angles for a few joints ----
-# # Solid line = target from the gait, dashed = network's prediction.
-# # If they overlap, the network has learned that joint's motion.
-# joints_to_show = [0, 1, 2, 21]   # L1 coxa, L1 femur, L1 tibia, R1 coxa
-# fig, axes = plt.subplots(len(joints_to_show), 1, figsize=(7, 8), sharex=True)
-# for ax, j in zip(axes, joints_to_show):
-#     ax.plot(t, Y[:, j], label="Target")
-#     ax.plot(t, final_pred[:, j], "--", label="Predicted")
-#     ax.set_ylabel("rad")
-#     ax.set_title(joint_labels[j])
-#     ax.grid(True, alpha=0.3)
-# axes[0].legend()
-# axes[-1].set_xlabel("Frame")
-# plt.tight_layout()
-# plt.savefig("predicted_vs_target.png", dpi=150)
+# ---- Plot 1: loss curve ----
+# Log scale on the y-axis, because the loss shrinks by several
+# orders of magnitude and a normal scale would hide the later progress.
+plt.figure(figsize=(7, 4))
+plt.plot(loss_history)
+plt.yscale("log")
+plt.xlabel("Epoch")
+plt.ylabel("MSE loss (log scale)")
+plt.title(f"Training loss  (layers {layer_sizes}, lr = {learning_rate})")
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig("loss_curve.png", dpi=150)
 
-# # ---- Error per joint (console summary) ----
-# per_joint_error = np.mean((final_pred - Y) ** 2, axis=0)
-# worst = np.argmax(per_joint_error)
-# print(f"Worst joint: {joint_labels[worst]}  (MSE {per_joint_error[worst]:.6f})")
+# ---- Plot 2: predicted vs target angles for a few joints ----
+# Solid line = target from the gait, dashed = network's prediction.
+# If they overlap, the network has learned that joint's motion.
+joints_to_show = [0, 1, 2, 21]   # L1 coxa, L1 femur, L1 tibia, R1 coxa
+fig, axes = plt.subplots(len(joints_to_show), 1, figsize=(7, 8), sharex=True)
+for ax, j in zip(axes, joints_to_show):
+    ax.plot(t, Y[:, j], label="Target")
+    ax.plot(t, final_pred[:, j], "--", label="Predicted")
+    ax.set_ylabel("rad")
+    ax.set_title(joint_labels[j])
+    ax.grid(True, alpha=0.3)
+axes[0].legend()
+axes[-1].set_xlabel("Frame")
+plt.tight_layout()
+plt.savefig("predicted_vs_target.png", dpi=150)
 
-# plt.show()
+# ---- Error per joint (console summary) ----
+per_joint_error = np.mean((final_pred - Y) ** 2, axis=0)
+worst = np.argmax(per_joint_error)
+print(f"Worst joint: {joint_labels[worst]}  (MSE {per_joint_error[worst]:.6f})")
+
+# ---- Show one frame: real angles vs network angles ----
+frame = 150   # pick a frame (midway through the walk)
+print(f"\nFrame {frame} (degrees):")
+print("Joint       Target  Predicted  Error")
+for j in range(24):   # go through all 24 joints
+    target_deg = np.degrees(Y[frame, j])          # real angle
+    pred_deg = np.degrees(final_pred[frame, j])   # network's angle
+    print(f"{joint_labels[j]:<10} {target_deg:7.1f} {pred_deg:9.1f} {pred_deg - target_deg:6.1f}")
+
+# ---- Draw the spiders ----
+import viz   # file that draws the spider
+frames_to_show = [0, 75, 150, 225]   # 4 bits of the walk
+fig = plt.figure(figsize=(12, 6))    # Make a big picture
+for col, f in enumerate(frames_to_show):
+    for row, (name, data) in enumerate([("Target", Y), ("Predicted", final_pred)]):
+        ax = fig.add_subplot(2, 4, row * 4 + col + 1, projection="3d")   # make a 3D box
+        viz._setup_axes(ax)                       # draw body and floor
+        lines = viz._make_leg_lines(ax)           # make the legs
+        pose = np.degrees(data[f]).reshape(8, 3)  # turn 24 numbers into 8 legs
+        viz._update_leg_lines(lines, pose)        # put the legs in that pose
+        ax.set_title(f"{name} - frame {f}")       # add a title
+plt.tight_layout()
+plt.savefig("predicted_poses.png", dpi=150)   # save the picture
+
+
+plt.show()
 
 # ===== STEP 8: ARCHITECTURE COMPARISON =====
 # Train several network shapes with the same data, learning rate and
