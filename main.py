@@ -9,8 +9,8 @@ import viz
 
 np.set_printoptions(suppress=True, precision=2)
 
-GENERATIONS = 500             # same budget for both encodings so the comparison is fair
-POP_SIZE = 100
+GENERATIONS = 1000             # same budget for both encodings so the comparison is fair
+POP_SIZE = 200
 SEED = 0
 MAKE_GIF = True               # set False to skip the (slow-ish) animation
 

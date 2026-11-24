@@ -78,8 +78,6 @@ def gradient_check(n_samples=20, checks_per_param=25, eps=1e-6, seed=0):
 # frame 3 blending back into frame 0. Angles are converted to radians so
 # targets are around +-1.5, a good range for the network.
 #
-# The GA's best genome should be saved with np.save("gait.npy", best_genome).
-# If gait.npy does not exist yet, the teammate's placeholder data is used.
 def gait_targets(genome, n_frames=len(nnt.X)):
     keyframes = np.deg2rad(ce.to_frames(genome).reshape(ce.N_FRAMES, -1))   # (4, 24)
     key_phase = np.arange(ce.N_FRAMES + 1) / ce.N_FRAMES                    # 0, .25, .5, .75, 1
@@ -87,15 +85,27 @@ def gait_targets(genome, n_frames=len(nnt.X)):
     phase = np.arange(n_frames) / n_frames
     return np.column_stack([np.interp(phase, key_phase, looped[:, j]) for j in range(looped.shape[1])])
 
+def load_data(path="gait.csv", degrees=True):
+    if not os.path.exists(path):
+        print(f"{path} not found - training on the placeholder data instead\n")
+        return nnt.X, nnt.Y
 
-def load_data():
-    if os.path.exists("gait.npy"):
-        print("Training on the evolved gait from gait.npy\n")
-        return nnt.X, gait_targets(np.load("gait.npy"))
-    print("gait.npy not found - training on the placeholder data instead\n")
-    return nnt.X, nnt.Y
+    print(f"Training on the evolved gait from {path}\n")
+    G = np.loadtxt(path, delimiter=",", ndmin=2)     # add skiprows=1 if the CSV has a header row
+    if degrees:
+        G = np.deg2rad(G)                            # set degrees=False if the CSV is already in radians
 
+    n = len(nnt.X)
+    if len(G) == n:                                  # already 300 full frames
+        return nnt.X, G
 
+    # Otherwise treat the rows as keyframes and interpolate, looping back to frame 0
+    key_phase = np.arange(len(G) + 1) / len(G)
+    looped = np.vstack([G, G[:1]])
+    phase = np.arange(n) / n
+    Y = np.column_stack([np.interp(phase, key_phase, looped[:, j])
+                         for j in range(G.shape[1])])
+    return nnt.X, Y
 # ---------------------------------------------------------------------------
 # Part 3: convergence
 # ---------------------------------------------------------------------------
