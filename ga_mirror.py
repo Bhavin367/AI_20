@@ -62,7 +62,7 @@ def random_genome():
 # ---------------------------------------------------------------------------
 # Selection: tournament (same reasoning as ga_op.py - uses rank, not scale)
 # ---------------------------------------------------------------------------
-def tournament_select(pop, fits, k=3):
+def tournament_select(pop, fits, k=config.k):
     idx = rng.integers(0, len(pop), size=k)
     return pop[idx[np.argmax(fits[idx])]].copy()
 
@@ -70,7 +70,7 @@ def tournament_select(pop, fits, k=3):
 # ---------------------------------------------------------------------------
 # Crossover: block-uniform on (frame, leg) triples
 # ---------------------------------------------------------------------------
-def block_uniform_crossover(p1, p2, pc=0.9):
+def block_uniform_crossover(p1, p2, pc=config.pc):
     c1, c2 = p1.copy(), p2.copy()
     if rng.random() < pc:
         for i in range(N_BLOCKS):
@@ -80,7 +80,7 @@ def block_uniform_crossover(p1, p2, pc=0.9):
     return c1, c2
 
 
-def blx_crossover(p1, p2, alpha=0.3, pc=0.9):
+def blx_crossover(p1, p2, alpha=config.blx_alpha, pc=config.pc):
     c1, c2 = p1.copy(), p2.copy()
     if rng.random() < pc:
         lo, hi = np.minimum(p1, p2), np.maximum(p1, p2)
@@ -93,7 +93,7 @@ def blx_crossover(p1, p2, alpha=0.3, pc=0.9):
 # ---------------------------------------------------------------------------
 # Mutation: per-gene Gaussian + rare block reset (as in ga_op.py)
 # ---------------------------------------------------------------------------
-def gaussian_mutation(genome, pm=0.05, sigma_frac=0.1):
+def gaussian_mutation(genome, pm=config.pm, sigma_frac=config.sigma_fixed):
     child = genome.copy()
     mask = rng.random(N_GENES) < pm
     noise = rng.normal(0.0, sigma_frac * SPAN)
@@ -101,7 +101,7 @@ def gaussian_mutation(genome, pm=0.05, sigma_frac=0.1):
     return np.clip(child, LOWER, UPPER)
 
 
-def block_reset_mutation(genome, pm_block=0.03):
+def block_reset_mutation(genome, pm_block=config.pm_block):
     child = genome.copy()
     for i in range(N_BLOCKS):
         if rng.random() < pm_block:
@@ -110,11 +110,11 @@ def block_reset_mutation(genome, pm_block=0.03):
     return child
 
 
-def sigma_schedule(gen, max_gen, start=0.15, end=0.02):
+def sigma_schedule(gen, max_gen, start=config.sigma_start, end=config.sigma_end):
     return start + gen / max(1, max_gen - 1) * (end - start)
 
 
-def mutate(genome, pm=0.05, sigma_frac=0.1, pm_block=0.03):
+def mutate(genome, pm=config.pm, sigma_frac=config.sigma_fixed, pm_block=config.pm_block):
     return block_reset_mutation(gaussian_mutation(genome, pm, sigma_frac), pm_block)
 
 
@@ -125,10 +125,10 @@ def mutate(genome, pm=0.05, sigma_frac=0.1, pm_block=0.03):
 # same code as ga_op.evolve. Histories are FITNESS values (1/(1+cost)).
 def evolve(pop_size=config.population_size,
            generations=config.generations,
-           pc=0.9, pm=0.05, pm_block=0.03, k=3, elite=2,
+           pc=config.pc, pm=config.pm, pm_block=config.pm_block, k=config.k, elite=config.elite,
            crossover=block_uniform_crossover,
-           adaptive=True, sigma_fixed=0.1,
-           target=0.999, seed=None, verbose=True):
+           adaptive=True, sigma_start=config.sigma_start, sigma_end=config.sigma_end, sigma_fixed=config.sigma_fixed,
+           target=config.target_fitness, seed=None, verbose=True):
     global rng
     if seed is not None:
         rng = np.random.default_rng(seed)
@@ -140,7 +140,7 @@ def evolve(pop_size=config.population_size,
     for gen in range(generations):
         order = np.argsort(fits)[::-1]
         new_pop = [pop[i].copy() for i in order[:elite]]       # elitism
-        sigma = sigma_schedule(gen, generations) if adaptive else sigma_fixed
+        sigma = sigma_schedule(gen, generations, sigma_start, sigma_end) if adaptive else sigma_fixed
 
         while len(new_pop) < pop_size:
             p1 = tournament_select(pop, fits, k)
@@ -155,8 +155,9 @@ def evolve(pop_size=config.population_size,
         best_hist.append(fits.max())
         mean_hist.append(fits.mean())
 
-        if verbose and gen % 100 == 0:
-            print(f"[mirror] gen {gen:4d}  cost {1 / fits.max() - 1:12.1f}")
+        if verbose and gen % 50 == 0:
+            costs = 1.0 / fits - 1.0
+            print(f"[mirror] gen {gen:4d}  best cost {costs.min():10.1f}  mean cost {costs.mean():12.1f}")
         if fits.max() >= target:
             break
 

@@ -1,7 +1,9 @@
 import os
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import nntrainingmethod as nnt     # teammate's network, backprop and optimisers
 import chrom_encode as ce
 

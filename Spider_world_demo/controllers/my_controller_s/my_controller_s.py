@@ -1,21 +1,31 @@
 import csv
+import importlib
 import math
 import os
-from controller import Robot
+
+try:
+    Robot = importlib.import_module("controller").Robot
+    IN_WEBOTS = True
+except ModuleNotFoundError:
+    Robot = None
+    IN_WEBOTS = False
 
 # =========================================================
 # SETTINGS (edit these)
 # =========================================================
 
-GAIT_FILE = "gait.csv"          # use "predicted_gait.csv" to play the neural network's output
+GAIT_FILE = "predicted_gait.csv"         # use "predicted_gait.csv" to play the neural network's output
 GAIT_IN_DEGREES = True          # False if the CSV is already in radians
 GAIT_HAS_HEADER = False         # True if the first row of the CSV is a header
 MIN_FRAMES = 100                # fewer rows than this = keyframes, so interpolate up to TARGET_FRAMES
 TARGET_FRAMES = 300
+HIP_SIGN = 1
 INVERT_RIGHT_THIGH_KNEE = True  # flip sign on right thigh/knee (R thighs are + when standing, L are -)
+THIGH_OFFSET = math.radians(-5.0)
+KNEE_OFFSET = math.radians(62.0)
 
 STAND_VELOCITY = 1.5
-WALK_VELOCITY = 10.0
+WALK_VELOCITY = 2.0
 LOWER_STEP = math.radians(0.5)
 TARGET_Z = 0.300
 MAX_LOWER_STEPS = 2000          # safety cap so the height loop can never hang
@@ -26,46 +36,49 @@ PRINT_EVERY_SECONDS = 1.0       # how often to print GPS position while walking
 # ROBOT, LEGS AND JOINT ORDER
 # =========================================================
 
-robot = Robot()
-timestep = int(robot.getBasicTimeStep())
+if IN_WEBOTS:
+    robot = Robot()
+    timestep = int(robot.getBasicTimeStep())
 
 right_legs = ["R1", "R2", "R3", "R4"]
 left_legs = ["L1", "L2", "L3", "L4"]
 all_legs = right_legs + left_legs
 
-# Column order of the 24 values per row in the gait CSV
+# Column order of gait.csv
+GAIT_LEGS = ["L1", "L2", "L3", "L4", "R4", "R3", "R2", "R1"]
 JOINT_ORDER = [
     f"{leg}_{joint}"
-    for leg in all_legs
+    for leg in GAIT_LEGS
     for joint in ["hip_joint", "thigh_joint", "knee_joint"]
 ]
 
 TARGET_ANGLES = {
-    "R": {"hip_joint": 0.0, "thigh_joint": 1.07, "knee_joint": -0.58},
-    "L": {"hip_joint": 0.0, "thigh_joint": -1.07, "knee_joint": 0.58},
+    "R": {"hip_joint": 0.0, "thigh_joint": 1.22, "knee_joint": -0.30},
+    "L": {"hip_joint": 0.0, "thigh_joint": -1.22, "knee_joint": 0.30},
 }
 
 # =========================================================
 # GPS AND MOTORS
 # =========================================================
 
-gps = robot.getDevice("gps")
-if gps is None:
-    print("ERROR: GPS not found!")
-    exit()
-gps.enable(timestep)
+if IN_WEBOTS:
+    gps = robot.getDevice("gps")
+    if gps is None:
+        print("ERROR: GPS not found!")
+        exit()
+    gps.enable(timestep)
 
-motors = {}
-for name in JOINT_ORDER:
-    motor = robot.getDevice(name)
-    if motor:
-        motors[name] = motor
-        motor.setVelocity(STAND_VELOCITY)
-    else:
-        print(f"WARNING: Motor '{name}' not found!")
+    motors = {}
+    for name in JOINT_ORDER:
+        motor = robot.getDevice(name)
+        if motor:
+            motors[name] = motor
+            motor.setVelocity(STAND_VELOCITY)
+        else:
+            print(f"WARNING: Motor '{name}' not found!")
 
-# Last position commanded to each motor (used to blend smoothly)
-commanded = {name: 0.0 for name in motors}
+    # Last position commanded to each motor (used to blend smoothly)
+    commanded = {name: 0.0 for name in motors}
 
 
 def set_pos(name, angle_rad):
@@ -82,10 +95,20 @@ def step_or_exit():
 
 def joint_target(name, angle_rad):
     """Apply the right-side sign flip used by the gait."""
+    if "hip" in name:
+        angle_rad *= HIP_SIGN
+    elif "thigh" in name:
+        angle_rad += THIGH_OFFSET
+    elif "knee" in name:
+        angle_rad += KNEE_OFFSET
+
     if INVERT_RIGHT_THIGH_KNEE and name.startswith("R"):
         if "thigh" in name or "knee" in name:
-            return -angle_rad
-    return angle_rad
+            angle_rad = -angle_rad
+
+    if "knee" in name:
+        return max(-2.0, min(1.0, angle_rad))
+    return max(-1.5708, min(1.5708, angle_rad))
 
 
 # =========================================================
@@ -128,6 +151,27 @@ if len(gait_rows) < MIN_FRAMES:
     print(f"Interpolated {n_key} keyframes up to {len(gait_rows)} frames")
 
 num_frames = len(gait_rows)
+
+if not IN_WEBOTS:
+    hip_vals, thigh_vals, knee_vals = [], [], []
+    for row in gait_rows:
+        for name, angle in zip(JOINT_ORDER, row):
+            cmd = joint_target(name, angle)
+            if not math.isfinite(cmd):
+                raise ValueError(f"Non-finite joint target for {name}: {cmd}")
+            if "hip" in name:
+                hip_vals.append(cmd)
+            elif "thigh" in name:
+                thigh_vals.append(cmd)
+            else:
+                knee_vals.append(cmd)
+    print("[Offline check] 'controller' module not active (running outside Webots).")
+    print(f"Verified {num_frames} frames x {len(JOINT_ORDER)} joints for {GAIT_FILE}:")
+    print(f"  hip   range (rad): [{min(hip_vals):.3f}, {max(hip_vals):.3f}] (limit [-1.571, 1.571])")
+    print(f"  thigh range (rad): [{min(thigh_vals):.3f}, {max(thigh_vals):.3f}] (limit [-1.571, 1.571])")
+    print(f"  knee  range (rad): [{min(knee_vals):.3f}, {max(knee_vals):.3f}] (limit [-2.000, 1.000])")
+    print("Open Spider_world_demo/worlds/spider_world_1.wbt in Webots and press Play to simulate in 3D.")
+    raise SystemExit(0)
 
 # =========================================================
 # STAND UP

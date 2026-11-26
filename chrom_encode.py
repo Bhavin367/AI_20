@@ -51,5 +51,3 @@ if __name__ == "__main__":
     print(to_frames(a))
     pop = generate_population()
     print(f"Generated {pop.shape[0]} chromosomes of {pop.shape[1]} genes")
-
-

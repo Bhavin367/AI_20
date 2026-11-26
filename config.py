@@ -51,6 +51,19 @@ w_lift , w_stride , w_slip = 1.0,1.0,1.0
 
 # parameters 
 
-population_size = 100  
+population_size = 200  
 n_genes = n_frames * n_legs * joints_per_leg  # 4 * 8 * 3 = 96
-generations = 200 
+generations = 1000 
+ablation_population_size = 100
+ablation_generations = 400
+seed = 0
+pc = 0.9
+pm = 0.05
+pm_block = 0.03
+k = 3
+elite = 2
+blx_alpha = 0.3
+sigma_start = 0.15
+sigma_end = 0.02
+sigma_fixed = 0.1
+target_fitness = 0.999
