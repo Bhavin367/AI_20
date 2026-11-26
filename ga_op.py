@@ -36,7 +36,7 @@ def random_genome():
 # near-uniformly (no pressure); later, one good genome can dominate it
 # (premature convergence). Tournament uses only the RANK of fitness, so it is
 # unaffected by that scale, and k sets the pressure directly.
-def tournament_select(pop, fits, k=3):
+def tournament_select(pop, fits, k=config.k):
     selected_idx = rng.integers(0,len(pop),size=k)
 
     selected_fitness = fits[selected_idx]
@@ -58,7 +58,7 @@ def tournament_select(pop, fits, k=3):
 # combination. Gene-level uniform crossover would split these triples and
 # mostly produce broken legs; swapping whole triples keeps good leg poses.
 # pc the chance that crossover happens 
-def block_uniform_crossover(p1, p2, pc=0.9):
+def block_uniform_crossover(p1, p2, pc=config.pc):
     c1 = p1.copy()
     c2 = p2.copy()
 
@@ -83,7 +83,7 @@ def block_uniform_crossover(p1, p2, pc=0.9):
 # Picks each child gene uniformly from the parents' interval extended by
 # alpha on each side. Real-coded, so it can create new angle values and
 # fine-tune the continuous z / stride targets, which swapping cannot do.
-def blx_crossover(p1, p2, alpha=0.3, pc=0.9):
+def blx_crossover(p1, p2, alpha=config.blx_alpha, pc=config.pc):
     c1, c2 = p1.copy(), p2.copy()
 
     if rng.random() < pc:
@@ -106,7 +106,7 @@ def blx_crossover(p1, p2, alpha=0.3, pc=0.9):
 # narrow one). Small nudges fine-tune an already-good leg pose, which suits
 # real-coded angles. Results are clipped so we never leave the joint caps.
 # pm = 0.05 -> about 5 of 96 genes change per child on average.
-def gaussian_mutation(genome, pm=0.05, sigma_frac=0.1):
+def gaussian_mutation(genome, pm=config.pm, sigma_frac=config.sigma_fixed):
     child = genome.copy()
 
     mask = rng.random(N_GENES) < pm                 # which genes mutate
@@ -123,7 +123,7 @@ def gaussian_mutation(genome, pm=0.05, sigma_frac=0.1):
 # pose at a time. It keeps coxa/femur/tibia together (same reasoning as the
 # block crossover) and helps escape local optima / restore lost diversity.
 # Keep pm_block low, since it is disruptive.
-def block_reset_mutation(genome, pm_block=0.03):
+def block_reset_mutation(genome, pm_block=config.pm_block):
     child = genome.copy()
 
     for i in range(N_BLOCKS):
@@ -140,7 +140,7 @@ def block_reset_mutation(genome, pm_block=0.03):
 # ---------------------------------------------------------------------------
 # Early on we want big steps to explore; late on we want small ones to
 # fine-tune. Pass the result in as sigma_frac.
-def sigma_schedule(gen, max_gen, start=0.15, end=0.02):
+def sigma_schedule(gen, max_gen, start=config.sigma_start, end=config.sigma_end):
     t = gen / max(1, max_gen - 1)
     return start + t * (end - start)
 
@@ -148,7 +148,7 @@ def sigma_schedule(gen, max_gen, start=0.15, end=0.02):
 # ---------------------------------------------------------------------------
 # Wrapper used by the GA loop
 # ---------------------------------------------------------------------------
-def mutate(genome, pm=0.05, sigma_frac=0.1, pm_block=0.03):
+def mutate(genome, pm=config.pm, sigma_frac=config.sigma_fixed, pm_block=config.pm_block):
     genome = gaussian_mutation(genome, pm, sigma_frac)
     genome = block_reset_mutation(genome, pm_block)
     return genome 
@@ -161,15 +161,17 @@ def mutate(genome, pm=0.05, sigma_frac=0.1, pm_block=0.03):
 # Every parameter is an argument so it can be tuned/compared in the report.
 def evolve(pop_size=config.population_size,
            generations=config.generations,
-           pc=0.9,                 # crossover probability
-           pm=0.05,                # per-gene mutation probability
-           pm_block=0.03,          # per-block reset probability
-           k=3,                    # tournament size
-           elite=2,                # best genomes copied unchanged
+           pc=config.pc,                 # crossover probability
+           pm=config.pm,                # per-gene mutation probability
+           pm_block=config.pm_block,          # per-block reset probability
+           k=config.k,                    # tournament size
+           elite=config.elite,                # best genomes copied unchanged
            crossover=block_uniform_crossover,
            adaptive=True,          # shrink sigma over the run
-           sigma_fixed=0.1,        # used when adaptive=False
-           target=0.999,           # stop early if fitness reaches this
+           sigma_start=config.sigma_start,
+           sigma_end=config.sigma_end,
+           sigma_fixed=config.sigma_fixed,        # used when adaptive=False
+           target=config.target_fitness,           # stop early if fitness reaches this
            seed=None,
            verbose=True):
     global rng
@@ -186,7 +188,7 @@ def evolve(pop_size=config.population_size,
         order = np.argsort(fits)[::-1]
         new_pop = [pop[i].copy() for i in order[:elite]]
 
-        sigma = sigma_schedule(gen, generations) if adaptive else sigma_fixed
+        sigma = sigma_schedule(gen, generations, sigma_start, sigma_end) if adaptive else sigma_fixed
 
         # 3. breed until the population is full
         while len(new_pop) < pop_size:
@@ -204,8 +206,9 @@ def evolve(pop_size=config.population_size,
         # 5. record stats for the plots
         best_hist.append(fits.max())
         mean_hist.append(fits.mean())
-        if verbose and gen % 20 == 0:
-            print(f"gen {gen:3d}  best {fits.max():.6f}  mean {fits.mean():.6f}")
+        if verbose and gen % 50 == 0:
+            costs = 1.0 / fits - 1.0
+            print(f"gen {gen:4d}  best cost {costs.min():10.1f}  mean cost {costs.mean():12.1f}")
 
         # 6. termination: good enough
         if fits.max() >= target:

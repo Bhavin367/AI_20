@@ -1,2 +1,7 @@
 population.txt
 
+__pycache__/
+*.pyc
+.DS_Store
+*.bak
+.env

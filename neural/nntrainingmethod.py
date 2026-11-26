@@ -1,13 +1,27 @@
+import os
 import numpy as np
 import matplotlib.pyplot as plt
+
+NEURAL_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(NEURAL_DIR)
+
+
+def load_ga_gait_radians():
+    rad_path = os.path.join(BASE_DIR, "gait_rad.csv")
+    deg_path = os.path.join(BASE_DIR, "gait.csv")
+    if os.path.exists(rad_path):
+        return np.loadtxt(rad_path, delimiter=",")
+    if os.path.exists(deg_path):
+        return np.deg2rad(np.loadtxt(deg_path, delimiter=","))
+    raise FileNotFoundError(f"Could not find gait_rad.csv or gait.csv in {BASE_DIR}. Run main.py (Part 1) first.")
+
 
 # ===== DATA (same as nn_scratch.py) =====
 n_frames = 300
 t = np.arange(n_frames)
 phase = 2 * np.pi * t / n_frames
 X = np.column_stack([np.sin(phase), np.cos(phase)])                 # (300, 2)
-Y = np.column_stack([0.3 * np.sin(phase + j) for j in range(24)])  # (300, 24) placeholder
-# Later: Y = np.load("gait.npy")
+Y = load_ga_gait_radians()                                          # (300, 24)
 
 layer_sizes = [2, 64, 64, 24]   # chosen architecture, tanh hidden layers
 
@@ -18,21 +32,24 @@ def init_weights(sizes, rng):
     return [(rng.normal(0, 1 / np.sqrt(n_in), size=(n_in, n_out)), np.zeros(n_out))
             for n_in, n_out in zip(sizes[:-1], sizes[1:])]
 
-def forward_with_cache(X, params):
-    activations = [X]
-    a = X
+
+def forward_with_cache(X_in, params):
+    activations = [X_in]
+    a = X_in
     for W, b in params[:-1]:
         a = np.tanh(a @ W + b)
         activations.append(a)
     W, b = params[-1]
     return a @ W + b, activations
 
-def mse_loss(pred, Y):
-    return np.mean((pred - Y) ** 2)
 
-def backward(pred, Y, activations, params):
+def mse_loss(pred, target):
+    return np.mean((pred - target) ** 2)
+
+
+def backward(pred, target, activations, params):
     grads = [None] * len(params)
-    delta = 2 * (pred - Y) / pred.size
+    delta = 2 * (pred - target) / pred.size
     for i in reversed(range(len(params))):
         W, b = params[i]
         a_prev = activations[i]
@@ -107,16 +124,13 @@ class Adam:
 
 # ===== TRAINING LOOP (now supports mini-batches) =====
 def train(optimizer, batch_size=None, epochs=3000, seed=42):
-    """batch_size=None means full batch (all 300 frames per update).
-    Otherwise the frames are shuffled each epoch and split into batches,
-    with one weight update per batch. Loss is always measured on all frames."""
     rng = np.random.default_rng(seed)
     params = init_weights(layer_sizes, rng)
     n = len(X)
     bs = n if batch_size is None else batch_size
     history = []
     with np.errstate(over="ignore", invalid="ignore"):   # a too-high lr can overflow
-        for epoch in range(epochs):
+        for _ in range(epochs):
             order = rng.permutation(n) if bs < n else np.arange(n)
             for start in range(0, n, bs):
                 idx = order[start:start + bs]
@@ -133,19 +147,21 @@ def report(label, history):
     print(f"  {label:<22}{text}")
 
 
-if __name__ == "__main__":
+def main():
     fig, axes = plt.subplots(1, 3, figsize=(16, 4.5))
 
     # ---- Experiment 1: learning rate (plain GD, full batch) ----
-    print("1. Learning rate  (gradient descent, full batch)")
+    print("1. Learning rate (gradient descent, full batch)")
     for lr in [0.01, 0.05, 0.1, 0.5, 1.0, 5.0]:
-        h = train(GradientDescent(lr))
+        h = np.array(train(GradientDescent(lr)), dtype=float)
         report(f"lr = {lr}", h)
-        axes[0].plot(h, label=f"lr = {lr}")
+        h_plot = np.where(np.isfinite(h) & (h <= 10.0), h, np.nan)
+        axes[0].plot(h_plot, label=f"lr = {lr}")
+    axes[0].set_ylim(5e-5, 2.0)
     axes[0].set_title("Learning rate (GD, full batch)")
 
     # ---- Experiment 2: batch size (plain GD, lr 0.1) ----
-    print("\n2. Batch size  (gradient descent, lr = 0.1)")
+    print("\n2. Batch size (gradient descent, lr = 0.1)")
     for bs in [None, 64, 32, 8]:
         label = "full (300)" if bs is None else str(bs)
         h = train(GradientDescent(0.1), batch_size=bs)
@@ -154,11 +170,11 @@ if __name__ == "__main__":
     axes[1].set_title("Batch size (GD, lr = 0.1)")
 
     # ---- Experiment 3: optimiser (full batch) ----
-    print("\n3. Optimiser  (full batch)")
+    print("\n3. Optimiser (full batch)")
     for name, opt in [("Gradient descent 0.1", GradientDescent(0.1)),
                       ("Momentum 0.1", Momentum(0.1)),
                       ("Adam 0.001", Adam(0.001)),
-                      ("Adam 0.01", Adam(0.01))]:
+                      ("Adam 0.003", Adam(0.003))]:
         h = train(opt)
         report(name, h)
         axes[2].plot(h, label=name)
@@ -167,9 +183,16 @@ if __name__ == "__main__":
     for ax in axes:
         ax.set_yscale("log")
         ax.set_xlabel("Epoch")
-        ax.set_ylabel("MSE loss (log scale)")
+        ax.set_ylabel("MSE loss (rad^2, log scale)")
         ax.grid(True, alpha=0.3)
         ax.legend(fontsize=8)
     plt.tight_layout()
-    plt.savefig("training_comparison.png", dpi=150)
-    plt.show()
+    plt.savefig(os.path.join(NEURAL_DIR, "training_comparison.png"), dpi=150)
+    print("saved training_comparison.png in neural/")
+
+    if plt.get_backend().lower() != "agg":
+        plt.show()
+
+
+if __name__ == "__main__":
+    main()
