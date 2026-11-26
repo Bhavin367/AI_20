@@ -34,7 +34,6 @@ Solid {
   ]
 }
 SpiderOctopod {
-  controller "my_controller_s"
   hidden position_0_0 1.1586780460408042e-05
   hidden position_0_1 -1.1590416512512549e-05
   hidden position_0_2 1.1625681955264819e-05
