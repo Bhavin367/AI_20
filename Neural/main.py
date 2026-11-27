@@ -39,6 +39,19 @@ FINAL = {
 def heading(text):
     print(f"\n===== {text} =====")
 
+def save_predicted_gait(params, activation, keyframes):
+    """Generate and save the predicted gait in Webots-compatible CSV format."""
+    X, _, _ = nn.make_dataset(keyframes)
+
+    predictions = nn.predict(X, params, activation)
+
+    predictions = np.degrees(predictions)
+
+    output_file = RESULTS / "predicted.csv"
+    np.savetxt(output_file, predictions, delimiter=",", fmt="%.6f")
+
+    print(f"  predicted gait saved: {output_file}")
+    print(f"  output shape: {predictions.shape}")
 
 def evaluate_and_plot(params, activation, keyframes):
     """Print the test results, save them, and draw the output plots."""
@@ -46,13 +59,15 @@ def evaluate_and_plot(params, activation, keyframes):
     print(report)
     (RESULTS / "evaluation.txt").write_text(report + "\n")
 
+    save_predicted_gait(params, activation, keyframes)
+
     X, Y, phase = nn.make_dataset(keyframes, offset=0.5)
     pred = nn.predict(X, params, activation)
+
     check.plot_predicted_vs_target(pred, Y, phase, len(keyframes),
                                    RESULTS / "predicted_vs_target.png")
     check.plot_joint_errors(pred, Y, RESULTS / "joint_errors.png")
     check.plot_poses(params, activation, keyframes, RESULTS / "poses.png")
-
 
 def main():
     parser = argparse.ArgumentParser(description="Spider gait neural network")

@@ -6,7 +6,7 @@ from controller import Robot
 # =========================================================
 # SETTINGS
 # =========================================================
-GAIT_FILE = "gait.csv"      # or "predicted_gait.csv" for the neural network's output
+GAIT_FILE = "predicted.csv"      # "gait.csv" for ga's output or "predicted.csv" for the neural network's output
 CYCLE_SECONDS = 0.8         # time for one full gait cycle (bigger = slower)
 STRIDE_SCALE = 0.35         # size of each step: Webots metres per GA unit
 STEP_HEIGHT = 0.15          # how high a swinging foot is lifted (m)

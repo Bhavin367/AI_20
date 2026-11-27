@@ -1,0 +1,5 @@
+  test set                   MSE (rad^2)   mean err (deg)   max err (deg)
+  training samples             0.0000949            0.367           4.289
+  in-between phases            0.0000940            0.366           3.967
+  GA key frames (300)          0.0000949            0.367           4.289
+  Joint limit check skipped (config.py with low/high not found).

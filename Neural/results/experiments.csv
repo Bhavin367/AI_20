@@ -1,0 +1,27 @@
+experiment,setting,parameters,weight_updates,final_loss
+Architecture,"[2, 24]",72,3000,0.0070645
+Architecture,"[2, 8, 24]",240,3000,0.0020479
+Architecture,"[2, 64, 24]",1752,3000,0.0001800
+Architecture,"[2, 64, 64, 24]",5912,3000,0.0000949
+Architecture,"[2, 128, 128, 128, 24]",36504,3000,0.0000548
+Activation function,tanh,5912,3000,0.0000949
+Activation function,relu,5912,3000,0.0000392
+Activation function,sigmoid,5912,3000,0.0002329
+Learning rate (gradient descent),lr = 0.01,5912,3000,0.0069196
+Learning rate (gradient descent),lr = 0.05,5912,3000,0.0018776
+Learning rate (gradient descent),lr = 0.1,5912,3000,0.0003754
+Learning rate (gradient descent),lr = 0.5,5912,3000,0.0002019
+Learning rate (gradient descent),lr = 1.0,5912,3000,0.0001729
+Learning rate (gradient descent),lr = 5.0,5912,3000,diverged
+Learning rate (Adam),lr = 0.0001,5912,3000,0.0006544
+Learning rate (Adam),lr = 0.001,5912,3000,0.0000949
+Learning rate (Adam),lr = 0.01,5912,3000,0.0000257
+Learning rate (Adam),lr = 0.1,5912,3000,0.0019933
+Batch size,full,5912,3000,0.0000949
+Batch size,64,5912,15000,0.0000262
+Batch size,32,5912,30000,0.0000383
+Batch size,8,5912,114000,0.0000130
+Optimiser,GD 0.1,5912,3000,0.0003754
+Optimiser,Momentum 0.1,5912,3000,0.0001686
+Optimiser,Adam 0.001,5912,3000,0.0000949
+Optimiser,Adam 0.01,5912,3000,0.0000257
